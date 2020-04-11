@@ -14,7 +14,7 @@ namespace Com.MaximilienGalea.UnistrokeReader {
 
         public static bool SavePattern(Line line, string filename) {
             bool success = true;
-            using (StreamWriter sw = new StreamWriter(directory + filename + ".xml", false, new UTF8Encoding(false))) {
+            using (StreamWriter sw = new StreamWriter(directory + filename + ".dollar.xml", false, new UTF8Encoding(false))) {
                 sw.WriteLine("<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>");
                 sw.WriteLine("<Line Name = \"{0}\">", filename);
 

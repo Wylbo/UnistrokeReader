@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Line Name = "^">
+	<Point X = "100" Y = "100"/>
+	<Point X = "200" Y = "0"/>
+	<Point X = "300" Y = "100"/>
+</Line>

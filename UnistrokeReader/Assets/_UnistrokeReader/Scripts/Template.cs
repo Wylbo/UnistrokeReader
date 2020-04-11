@@ -16,7 +16,7 @@ namespace Com.MaximilienGalea.UnistrokeReader {
 
         public Template(string name, List<Vector2> points) {
             _name = name;
-            _points = DollarRecognizer.Resample(points,64);
+            _points = DollarRecognizer.Normalize(points);
         }
 
     }
