@@ -18,14 +18,14 @@ namespace Com.MaximilienGalea.UnistrokeReader {
 		/// </summary>
 		/// <param name="xml"></param>
 		/// <returns></returns>
-		public static List<Vector2> ReadFromXML(string xml) {
+		public static Template ReadFromXML(string xml) {
 
 			XmlTextReader xmlReader = null;
-			List<Vector2> pattern = null;
+			Template template = null;
 
 			try {
 				xmlReader = new XmlTextReader(File.OpenText(xml));
-				pattern = ReadLine(xmlReader);
+				template = ReadLine(xmlReader);
 
 			} catch (Exception e) {
 				Debug.LogError("[PatternReader] " + e);
@@ -36,7 +36,7 @@ namespace Com.MaximilienGalea.UnistrokeReader {
 				}
 			}
 
-			return pattern;
+			return template;
 		}
 
 		/// <summary>
@@ -44,7 +44,7 @@ namespace Com.MaximilienGalea.UnistrokeReader {
 		/// </summary>
 		/// <param name="xmlReader"></param>
 		/// <returns></returns>
-		private static List<Vector2> ReadLine(XmlTextReader xmlReader) {
+		private static Template ReadLine(XmlTextReader xmlReader) {
 			List<Vector2> points = new List<Vector2>();
 			string lineName = null;
 			try {
@@ -78,7 +78,7 @@ namespace Com.MaximilienGalea.UnistrokeReader {
 				}
 			}
 
-			return points;
+			return new Template(lineName, points);
 		}
 	}
 }

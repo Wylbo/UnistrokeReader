@@ -26,11 +26,11 @@ namespace Com.MaximilienGalea.UnistrokeReader {
 
         protected string patternFolder = "Assets/_UnistrokeReader/Pattern/";
 
-        protected List<List<Vector2>> templates = new List<List<Vector2>>();
+        protected List<Template> templates = new List<Template>();
 
         // for math
-        protected float teta = 45;
-        protected float delta = 2;
+        protected float teta = 45 * Mathf.Deg2Rad;
+        protected float delta = 2 * Mathf.Deg2Rad;
         protected float phi = .5f * (-1 + Mathf.Sqrt(5));
         protected Vector2 origin = new Vector2(0, 0);
 
@@ -43,12 +43,13 @@ namespace Com.MaximilienGalea.UnistrokeReader {
                     templates.Add(PatternReader.ReadFromXML(file.FullName));
                 }
 
+
             } catch (Exception e) {
                 Debug.LogError("[$1] " + e);
                 throw;
             }
 
-            Debug.Log("[$1] all pattern loaded");
+            Debug.Log("[$1] " + templates.Count + " patterns loaded");
         }
 
 
@@ -68,9 +69,9 @@ namespace Com.MaximilienGalea.UnistrokeReader {
             points = TranslateTo(points, origin);
 
             //step 4
-            Tuple<List<Vector2>, float> result = Recognize(points);
+            Tuple<Template, float> result = Recognize(points);
 
-            pattern.text = result.Item1.Count.ToString();
+            pattern.text = result.Item1.Name;
             percent.text = result.Item2.ToString();
             //Debug.Log("[$1] template : " + result.Item1.Count + " percent : " + result.Item2);
 
@@ -84,12 +85,12 @@ namespace Com.MaximilienGalea.UnistrokeReader {
         /// <param name="points"></param>
         /// <param name="n"></param>
         /// <returns></returns>
-        protected List<Vector2> Resample(List<Vector2> points, int n = 64) {
+        public static List<Vector2> Resample(List<Vector2> points, int n) {
             float l = PathLength(points) / (n - 1);
             float D = 0;
             List<Vector2> newPoints = new List<Vector2>();
             newPoints.Add(points[0]);
-
+            
             for (int i = 1; i < points.Count; i++) {
                 float d = Vector2.Distance(points[i - 1], points[i]);
                 if (D + d >= l) {
@@ -103,7 +104,7 @@ namespace Com.MaximilienGalea.UnistrokeReader {
                     D += d;
                 }
             }
-            if (newPoints.Count > 63) { 
+            if (newPoints.Count > 63) {
                 newPoints.RemoveAt(63);
             }
             return newPoints;
@@ -114,7 +115,7 @@ namespace Com.MaximilienGalea.UnistrokeReader {
         /// </summary>
         /// <param name="points"></param>
         /// <returns></returns>
-        protected float PathLength(List<Vector2> points) {
+        protected static float PathLength(List<Vector2> points) {
             float totalDistance = 0;
             for (int i = 1; i < points.Count; i++) {
                 totalDistance += Vector2.Distance(points[i - 1], points[i]);
@@ -161,8 +162,8 @@ namespace Com.MaximilienGalea.UnistrokeReader {
             List<Vector2> newPoints = new List<Vector2>();
             Vector2 centroid = CalculateCentroid(points);
             for (int i = 0; i < points.Count; i++) {
-                Vector2 q = new Vector2((points[i].x - centroid.x) * Mathf.Cos(angle) - (points[i].y - centroid.y) * Mathf.Sin(angle + centroid.x),
-                                        (points[i].y - centroid.y) * Mathf.Cos(angle) - (points[i].x - centroid.x) * Mathf.Sin(angle + centroid.y));
+                Vector2 q = new Vector2((points[i].x - centroid.x) * Mathf.Cos(angle) - (points[i].y - centroid.y) * Mathf.Sin(angle) + centroid.x,
+                                        (points[i].y - centroid.y) * Mathf.Sin(angle) - (points[i].x - centroid.x) * Mathf.Cos(angle) + centroid.y);
                 newPoints.Add(q);
             }
             return newPoints;
@@ -219,20 +220,20 @@ namespace Com.MaximilienGalea.UnistrokeReader {
         /// <param name="points"></param>
         /// <param name="templates"></param>
         /// <returns></returns>
-        protected Tuple<List<Vector2>, float> Recognize(List<Vector2> points) {
-            float b = Mathf.Infinity;
-            List<Vector2> supposedTemlate = null;
+        protected Tuple<Template, float> Recognize(List<Vector2> points) {
+            float best = Mathf.Infinity;
+            Template supposedTemlate = null;
 
-            foreach (List<Vector2> template in templates) {
-                float d = DistanceAtBestAngle(points, template, -teta, teta, delta);
-                if (d < b) {
-                    b = d;
+            foreach (Template template in templates) {
+                float d = DistanceAtBestAngle(points, template.Points, -teta, teta, delta);
+                if (d < best) {
+                    best = d;
                     supposedTemlate = template;
                 }
             }
-            float score = 1 - b / .5f * Mathf.Sqrt(size * size + size * size);
+            float score = 1 - best / .5f * Mathf.Sqrt(size * size + size * size);
 
-            return new Tuple<List<Vector2>, float>(supposedTemlate, score);
+            return new Tuple<Template, float>(supposedTemlate, score);
         }
 
         /// <summary>
@@ -291,7 +292,6 @@ namespace Com.MaximilienGalea.UnistrokeReader {
         /// <returns></returns>
         protected float PathDistance(List<Vector2> newPoints, List<Vector2> template) {
             float d = 0;
-            //template = Resample(template);
             try {
                 for (int i = 0; i < newPoints.Count; i++) {
                     d += Vector2.Distance(newPoints[i], template[i]);
