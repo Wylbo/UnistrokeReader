@@ -1822,8 +1822,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2cf42f311adaf5044b3678cd3406b2a1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  nbrResampledPoints: 64
-  size: 250
   glyphs:
   - {fileID: 5682153657781457480, guid: a3b71ab22bac37045b1ad3fbbccc6e37, type: 3}
   - {fileID: 5682153657781457480, guid: 832f754ef1ddd844bb99800449a3d783, type: 3}
