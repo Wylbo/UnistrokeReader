@@ -14,8 +14,8 @@ namespace Com.MaximilienGalea.UnistrokeReader {
         [SerializeField] private float pointSpace = .1f;
 
 
-        [SerializeField] private LineRenderer lineRenderer;
-        [SerializeField] private EdgeCollider2D edgeCol;
+        [SerializeField] private LineRenderer lineRenderer = null;
+        [SerializeField] private EdgeCollider2D edgeCol = null;
 
         private List<Vector2> _points;
 

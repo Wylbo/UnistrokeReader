@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -23,6 +24,8 @@ namespace Com.MaximilienGalea.UnistrokeReader {
         [SerializeField] protected Text pattern;
         [SerializeField] protected Text percent;
 
+        protected string patternFolder = "Assets/_UnistrokeReader/Pattern/";
+
         protected List<List<Vector2>> templates = new List<List<Vector2>>();
 
         // for math
@@ -32,22 +35,20 @@ namespace Com.MaximilienGalea.UnistrokeReader {
         protected Vector2 origin = new Vector2(0, 0);
 
         protected void Start() {
+            DirectoryInfo directoryInfo = new DirectoryInfo(patternFolder);
+            FileInfo[] files = directoryInfo.GetFiles("*.xml");
 
-            Glyph glyph;
-            List<Vector2> glyphPoints = new List<Vector2>();
-            for (int i = 0; i < glyphs.Count; i++) {
-                glyph = glyphs[i];
+            try {
+                foreach (FileInfo file in files) {
+                    templates.Add(PatternReader.ReadFromXML(file.FullName));
+                }
 
-                Debug.Log("[$1] before resample : " + glyphPoints.Count);
-                glyphPoints = Resample(glyph.Points, nbrResampledPoints);
-                Debug.Log("[$1] after resample : " + glyphPoints.Count);
-                float indicativeAngle = IndicativeAngle(glyphPoints);
-                glyphPoints = RotateBy(glyphPoints, indicativeAngle);
-                glyphPoints = ScaleTo(glyphPoints, size);   
-                glyphPoints = TranslateTo(glyphPoints, origin);
-
-                templates.Add(glyphPoints);
+            } catch (Exception e) {
+                Debug.LogError("[$1] " + e);
+                throw;
             }
+
+            Debug.Log("[$1] all pattern loaded");
         }
 
 
@@ -67,9 +68,9 @@ namespace Com.MaximilienGalea.UnistrokeReader {
             points = TranslateTo(points, origin);
 
             //step 4
-            Tuple<Glyph, float> result = Recognize(points);
+            Tuple<List<Vector2>, float> result = Recognize(points);
 
-            pattern.text = result.Item1.name;
+            pattern.text = result.Item1.Count.ToString();
             percent.text = result.Item2.ToString();
             //Debug.Log("[$1] template : " + result.Item1.Count + " percent : " + result.Item2);
 
@@ -218,21 +219,20 @@ namespace Com.MaximilienGalea.UnistrokeReader {
         /// <param name="points"></param>
         /// <param name="templates"></param>
         /// <returns></returns>
-        protected Tuple<Glyph, float> Recognize(List<Vector2> points) {
+        protected Tuple<List<Vector2>, float> Recognize(List<Vector2> points) {
             float b = Mathf.Infinity;
-            //List<Vector2> supposedTemlate = null;
-            Glyph supposedGlyph = null;
+            List<Vector2> supposedTemlate = null;
 
-            foreach (Glyph glyph in glyphs) {
-                float d = DistanceAtBestAngle(points, glyph.Points, -teta, teta, delta);
+            foreach (List<Vector2> template in templates) {
+                float d = DistanceAtBestAngle(points, template, -teta, teta, delta);
                 if (d < b) {
                     b = d;
-                    supposedGlyph = glyph;
+                    supposedTemlate = template;
                 }
             }
             float score = 1 - b / .5f * Mathf.Sqrt(size * size + size * size);
 
-            return new Tuple<Glyph, float>(supposedGlyph, score);
+            return new Tuple<List<Vector2>, float>(supposedTemlate, score);
         }
 
         /// <summary>
@@ -291,15 +291,15 @@ namespace Com.MaximilienGalea.UnistrokeReader {
         /// <returns></returns>
         protected float PathDistance(List<Vector2> newPoints, List<Vector2> template) {
             float d = 0;
-            template = Resample(template);
+            //template = Resample(template);
             try {
                 for (int i = 0; i < newPoints.Count; i++) {
                     d += Vector2.Distance(newPoints[i], template[i]);
                 }
 
             } catch (Exception e) {
-                Debug.LogError(e);
                 Debug.LogError("[$1] Nomber of sample point don't match, Points : " + newPoints.Count + " template : " + template.Count);
+                throw;
             }
 
             return d / newPoints.Count;
