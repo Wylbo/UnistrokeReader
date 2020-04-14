@@ -37,7 +37,7 @@ namespace Com.MaximilienGalea.UnistrokeReader {
         private static float halfDiagonal = .5f * diagonal;
         static private Vector2 origin = new Vector2(0, 0);
 
-        protected void Start() {
+        protected virtual void Start() {
             DirectoryInfo directoryInfo = new DirectoryInfo(patternFolder);
             FileInfo[] files = directoryInfo.GetFiles("*.dollar.xml");
 
@@ -57,7 +57,7 @@ namespace Com.MaximilienGalea.UnistrokeReader {
 
 
 
-        public bool StartRecognize(List<Vector2> points, bool useProtractor = false) {
+        public virtual bool StartRecognize(List<Vector2> points, bool useProtractor = false) {
             // step 1
             Debug.Log("[$1] before resample : " + points.Count);
             points = Normalize(points);
